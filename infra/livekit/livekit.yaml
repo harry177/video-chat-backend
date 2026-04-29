@@ -1,0 +1,16 @@
+port: 7880
+
+rtc:
+  tcp_port: 7881
+  port_range_start: 51000
+  port_range_end: 51100
+  use_external_ip: true
+
+  turn_servers:
+    - host: chat-turn.shopinstream.com
+      port: 3478
+      protocol: udp
+      secret: another-super-long-random-secret-at-least-32-chars
+
+keys:
+  livekitapikey: super-long-random-secret-at-least-32-chars

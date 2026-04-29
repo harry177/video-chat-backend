@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./apps/api
+    container_name: video-chat-api
+    env_file:
+      - .env
+    ports:
+      - "3002:3001"
+    restart: unless-stopped
+    depends_on:
+      - livekit
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: video-chat-livekit
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7882:7880"
+      - "7883:7881"
+      - "51101-51200:51000-51100/udp"
+    volumes:
+      - ./infra/livekit/livekit.yaml:/etc/livekit.yaml
+    restart: unless-stopped
+    depends_on:
+      - coturn
+
+  coturn:
+    image: coturn/coturn:latest
+    container_name: video-chat-coturn
+    command: -c /etc/turnserver.conf
+    ports:
+      - "3479:3478"
+      - "3479:3478/udp"
+      - "49201-49240:49160-49200/udp"
+    volumes:
+      - ./infra/coturn/turnserver.conf:/etc/turnserver.conf
+    restart: unless-stopped
