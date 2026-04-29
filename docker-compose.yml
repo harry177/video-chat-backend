@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     build:
@@ -19,8 +17,8 @@ services:
     command: --config /etc/livekit.yaml
     ports:
       - "7882:7880"
-      - "7883:7881"
-      - "51101-51200:51000-51099/udp"
+      - "7883:7883"
+      - "51101-51200:51101-51200/udp"
     volumes:
       - ./infra/livekit/livekit.yaml:/etc/livekit.yaml
     restart: unless-stopped
@@ -32,9 +30,9 @@ services:
     container_name: video-chat-coturn
     command: -c /etc/turnserver.conf
     ports:
-      - "3479:3478"
-      - "3479:3478/udp"
-      - "49201-49240:49160-49199/udp"
+      - "3479:3479"
+      - "3479:3479/udp"
+      - "49201-49240:49201-49240/udp"
     volumes:
       - ./infra/coturn/turnserver.conf:/etc/turnserver.conf
     restart: unless-stopped
