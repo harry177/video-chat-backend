@@ -20,7 +20,7 @@ services:
     ports:
       - "7882:7880"
       - "7883:7881"
-      - "51101-51200:51000-51100/udp"
+      - "51101-51200:51000-51099/udp"
     volumes:
       - ./infra/livekit/livekit.yaml:/etc/livekit.yaml
     restart: unless-stopped
@@ -34,7 +34,7 @@ services:
     ports:
       - "3479:3478"
       - "3479:3478/udp"
-      - "49201-49240:49160-49200/udp"
+      - "49201-49240:49160-49199/udp"
     volumes:
       - ./infra/coturn/turnserver.conf:/etc/turnserver.conf
     restart: unless-stopped
