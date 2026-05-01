@@ -209,3 +209,16 @@ export async function endRoom(id: string): Promise<void> {
     [id],
   );
 }
+
+export async function findActiveRoomsForCleanup(): Promise<RoomRow[]> {
+  const result = await db.query<RoomRow>(
+    `
+      select *
+      from rooms
+      where status = 'active'
+      order by created_at asc
+    `,
+  );
+
+  return result.rows;
+}

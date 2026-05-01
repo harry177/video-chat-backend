@@ -5,6 +5,7 @@ import {
   findActiveHostedRoomByUserId,
   findActiveParticipantByUserId,
   findActiveRooms,
+  findActiveRoomsForCleanup,
   findRoomById,
   markAllParticipantsLeft,
   markParticipantLeft,
@@ -13,7 +14,11 @@ import {
 import { env } from "../config/env";
 import { AuthUser } from "../types/auth";
 import { generateGuestIdentity, generateRoomName } from "../utils/random";
-import { createParticipantToken, deleteRoom } from "./livekit.service";
+import {
+  createParticipantToken,
+  listRoomParticipants,
+  deleteRoom,
+} from "./livekit.service";
 
 const MAX_ROOM_PARTICIPANTS = 5;
 
@@ -143,6 +148,10 @@ export async function leaveRoom(
     throw new Error("Room not found");
   }
 
+  if (room.status !== "active") {
+    return;
+  }
+
   const participantIdentity = params.user?.id ?? params.participantIdentity;
 
   if (!participantIdentity) {
@@ -153,6 +162,17 @@ export async function leaveRoom(
     roomId: room.id,
     participantIdentity,
   });
+
+  if (params.user?.id === room.host_user_id) {
+    try {
+      await deleteRoom(room.room_name);
+    } catch {
+      // LiveKit room may already be gone
+    }
+
+    await markAllParticipantsLeft(room.id);
+    await endRoomRow(room.id);
+  }
 }
 
 export async function endRoom(roomId: string, user: AuthUser) {
@@ -178,4 +198,22 @@ export async function endRoom(roomId: string, user: AuthUser) {
 
   await markAllParticipantsLeft(room.id);
   await endRoomRow(room.id);
+}
+
+export async function cleanupStaleRooms() {
+  const rooms = await findActiveRoomsForCleanup();
+
+  for (const room of rooms) {
+    try {
+      const participants = await listRoomParticipants(room.room_name);
+
+      if (participants.length === 0) {
+        await markAllParticipantsLeft(room.id);
+        await endRoomRow(room.id);
+      }
+    } catch {
+      await markAllParticipantsLeft(room.id);
+      await endRoomRow(room.id);
+    }
+  }
 }
