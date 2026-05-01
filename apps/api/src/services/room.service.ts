@@ -8,6 +8,7 @@ import {
   findActiveRoomsForCleanup,
   findRoomById,
   markAllParticipantsLeft,
+  markMissingParticipantsLeft,
   markParticipantLeft,
   upsertRoomParticipant,
 } from "../repositories/room.repository";
@@ -207,8 +208,16 @@ export async function cleanupStaleRooms() {
     try {
       const participants = await listRoomParticipants(room.room_name);
 
-      if (participants.length === 0) {
-        await markAllParticipantsLeft(room.id);
+      const activeParticipantIdentities = participants.map(
+        (participant) => participant.identity,
+      );
+
+      await markMissingParticipantsLeft({
+        roomId: room.id,
+        activeParticipantIdentities,
+      });
+
+      if (activeParticipantIdentities.length === 0) {
         await endRoomRow(room.id);
       }
     } catch {

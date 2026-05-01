@@ -197,6 +197,27 @@ export async function markAllParticipantsLeft(roomId: string): Promise<void> {
   );
 }
 
+export async function markMissingParticipantsLeft(params: {
+  roomId: string;
+  activeParticipantIdentities: string[];
+}): Promise<void> {
+  if (params.activeParticipantIdentities.length === 0) {
+    await markAllParticipantsLeft(params.roomId);
+    return;
+  }
+
+  await db.query(
+    `
+      update room_participants
+      set left_at = now()
+      where room_id = $1
+        and left_at is null
+        and participant_identity <> all($2::text[])
+    `,
+    [params.roomId, params.activeParticipantIdentities],
+  );
+}
+
 export async function endRoom(id: string): Promise<void> {
   await db.query(
     `

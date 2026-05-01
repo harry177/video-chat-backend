@@ -37,6 +37,5 @@ export async function deleteRoom(roomName: string) {
 
 export async function listRoomParticipants(roomName: string) {
   const client = getRoomServiceClient();
-
   return client.listParticipants(roomName);
 }
